@@ -420,7 +420,7 @@ def bot_response(
     max_new_tokens,
     request: gr.Request,
     apply_rate_limit=True,
-    use_recommended_config=False,
+    use_recommended_config=True,
 ):
     ip = get_ip(request)
     logger.info(f"bot_response. ip: {ip}")
@@ -578,7 +578,7 @@ def bot_response(
         is_vision=state.is_vision, has_csam_image=state.has_csam_image
     )
 
-    with open(filename, "a") as fout:
+    with open(filename, "a",encoding='utf-8') as fout:
         data = {
             "tstamp": round(finish_tstamp, 4),
             "type": "chat",
@@ -593,7 +593,7 @@ def bot_response(
             "state": state.dict(),
             "ip": get_ip(request),
         }
-        fout.write(json.dumps(data) + "\n")
+        fout.write(json.dumps(data,ensure_ascii=False) + "\n")
     get_remote_logger().log(data)
 
 
@@ -810,7 +810,7 @@ def build_single_model_ui(models, add_promotion_links=False):
         chatbot = gr.Chatbot(
             elem_id="chatbot",
             label="Scroll down and start chatting",
-            height=550,
+            height=450,
             show_copy_button=True,
         )
     with gr.Row():
