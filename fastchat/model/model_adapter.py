@@ -2178,6 +2178,17 @@ class DeepseekChatAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("deepseek-chat")
 
+class CustomServiceChatApiAdapter(BaseModelAdapter):
+    """The model adapter for deepseek-ai's chat models"""
+
+    # Note: that this model will require tokenizer version >= 0.13.3 because the tokenizer class is LlamaTokenizerFast
+
+    def match(self, model_path: str):
+        return "deepseek-chat-api" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("custom_service")
+
 
 class Yuan2Adapter(BaseModelAdapter):
     """The model adapter for Yuan2.0"""
@@ -2522,3 +2533,4 @@ register_model_adapter(SmaugChatAdapter)
 
 # After all adapters, try the default base adapter.
 register_model_adapter(BaseModelAdapter)
+register_model_adapter(CustomServiceChatApiAdapter)

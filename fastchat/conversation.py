@@ -763,6 +763,20 @@ register_conv_template(
     )
 )
 
+# 智能客服.
+cs_prompt = open('data/prompt.md', 'r').read()
+register_conv_template(
+    Conversation(
+        name="custom_service",
+        system_message=f"{cs_prompt}",
+        roles=("User", "Assistant"),
+        sep_style=SeparatorStyle.DEEPSEEK_CHAT,
+        sep="\n\n",
+        sep2="<｜end▁of▁sentence｜>",
+        stop_str="<｜end▁of▁sentence｜>",
+    )
+)
+
 # Vicuna v1.1 template
 register_conv_template(
     Conversation(
