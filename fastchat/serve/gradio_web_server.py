@@ -783,7 +783,7 @@ def build_single_model_ui(models, add_promotion_links=False):
     )
 
     notice_markdown = f"""
-# 🏔️ Chat with Open Large Language Models
+# 智能客服
 {promotion}
 """
 
@@ -794,39 +794,39 @@ def build_single_model_ui(models, add_promotion_links=False):
         with gr.Row(elem_id="model_selector_row"):
             model_selector = gr.Dropdown(
                 choices=models,
-                value=models[0] if len(models) > 0 else "",
+                # value=models[0] if len(models) > 0 else "",
                 interactive=True,
                 show_label=False,
                 container=False,
             )
-        with gr.Row():
-            with gr.Accordion(
-                f"🔍 Expand to see the descriptions of {len(models)} models",
-                open=False,
-            ):
-                model_description_md = get_model_description_md(models)
-                gr.Markdown(model_description_md, elem_id="model_description_markdown")
+        # with gr.Row():
+        #     with gr.Accordion(
+        #         f"🔍 Expand to see the descriptions of {len(models)} models",
+        #         open=False,
+        #     ):
+        #         model_description_md = get_model_description_md(models)
+        #         gr.Markdown(model_description_md, elem_id="model_description_markdown")
 
         chatbot = gr.Chatbot(
             elem_id="chatbot",
-            label="Scroll down and start chatting",
+            label=" ",
             height=450,
             show_copy_button=True,
         )
     with gr.Row():
         textbox = gr.Textbox(
             show_label=False,
-            placeholder="👉 Enter your prompt and press ENTER",
+            # placeholder="👉 Enter your prompt and press ENTER",
             elem_id="input_box",
         )
-        send_btn = gr.Button(value="Send", variant="primary", scale=0)
+        send_btn = gr.Button(value="发送", variant="primary", scale=0)
 
     with gr.Row() as button_row:
-        upvote_btn = gr.Button(value="👍  Upvote", interactive=False)
-        downvote_btn = gr.Button(value="👎  Downvote", interactive=False)
-        flag_btn = gr.Button(value="⚠️  Flag", interactive=False)
-        regenerate_btn = gr.Button(value="🔄  Regenerate", interactive=False)
-        clear_btn = gr.Button(value="🗑️  Clear history", interactive=False)
+        # upvote_btn = gr.Button(value="👍  Upvote", interactive=False)
+        # downvote_btn = gr.Button(value="👎  Downvote", interactive=False)
+        # flag_btn = gr.Button(value="⚠️  Flag", interactive=False)
+        regenerate_btn = gr.Button(value="🔄  重新生成", interactive=False)
+        clear_btn = gr.Button(value="🗑️  清除历史记录", interactive=False)
 
     with gr.Accordion("Parameters", open=False) as parameter_row:
         temperature = gr.Slider(
@@ -859,22 +859,22 @@ def build_single_model_ui(models, add_promotion_links=False):
 
     # Register listeners
     imagebox = gr.State(None)
-    btn_list = [upvote_btn, downvote_btn, flag_btn, regenerate_btn, clear_btn]
-    upvote_btn.click(
-        upvote_last_response,
-        [state, model_selector],
-        [textbox, upvote_btn, downvote_btn, flag_btn],
-    )
-    downvote_btn.click(
-        downvote_last_response,
-        [state, model_selector],
-        [textbox, upvote_btn, downvote_btn, flag_btn],
-    )
-    flag_btn.click(
-        flag_last_response,
-        [state, model_selector],
-        [textbox, upvote_btn, downvote_btn, flag_btn],
-    )
+    btn_list = [regenerate_btn, clear_btn]
+    # upvote_btn.click(
+    #     upvote_last_response,
+    #     [state, model_selector],
+    #     [textbox, upvote_btn, downvote_btn, flag_btn],
+    # )
+    # downvote_btn.click(
+    #     downvote_last_response,
+    #     [state, model_selector],
+    #     [textbox, upvote_btn, downvote_btn, flag_btn],
+    # )
+    # flag_btn.click(
+    #     flag_last_response,
+    #     [state, model_selector],
+    #     [textbox, upvote_btn, downvote_btn, flag_btn],
+    # )
     regenerate_btn.click(
         regenerate, state, [state, chatbot, textbox, imagebox] + btn_list
     ).then(
