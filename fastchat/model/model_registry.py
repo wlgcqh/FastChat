@@ -762,3 +762,10 @@ register_model_info(
     "https://reka.ai/reka-flash",
     "Multimodal model by Reka",
 )
+
+register_model_info(
+    ["deepseek-chat-api"],
+    "DeepSeek Chat API",
+    "https://chat.deepseek.com",
+    "DeepSeek AI",
+)

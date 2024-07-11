@@ -515,7 +515,7 @@ def bot_response(
     html_code = ' <span class="cursor"></span> '
 
     # conv.update_last_message("▌")
-    conv.update_last_message(html_code)
+    # conv.update_last_message(html_code)
     yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5
 
     try:
@@ -524,8 +524,8 @@ def bot_response(
             if data["error_code"] == 0:
                 output = data["text"].strip()
                 # conv.update_last_message(output + "▌")
-                conv.update_last_message(output + html_code)
-                yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5
+                # conv.update_last_message(output + html_code)
+                #yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5
             else:
                 output = data["text"] + f"\n\n(error_code: {data['error_code']})"
                 conv.update_last_message(output)
