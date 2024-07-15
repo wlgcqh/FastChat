@@ -27,6 +27,7 @@ from pydantic_settings import BaseSettings
 import shortuuid
 import tiktoken
 import uvicorn
+import datetime
 
 from fastchat.constants import (
     WORKER_API_TIMEOUT,
@@ -71,6 +72,9 @@ conv_template_map = {}
 
 fetch_timeout = aiohttp.ClientTimeout(total=3 * 3600)
 system_prompt = open('data/prompt.md', 'r').read()
+t = datetime.datetime.now()
+conv_log_filename = f"{t.year}-{t.month:02d}-{t.day:02d}-conv.txt"
+log_name = os.path.join("logs/", conv_log_filename)
 
 
 async def fetch_remote(url, pload=None, name=None):
@@ -434,6 +438,12 @@ async def create_chat_completion(request: MyChatCompletionRequest):
     res_content = {"content": response.choices[0].message.content}
     ## 策略
     # func(res_content)
+
+    #记录日志
+    
+    with open(log_name, "a") as fout:
+        row = f'history:{messages},response:{res_content}\n'
+        fout.write(row)
     return res_content
 
 
