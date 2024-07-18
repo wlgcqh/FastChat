@@ -42,6 +42,8 @@ from fastchat.utils import (
     load_image,
 )
 
+from LawConv.refine_law_conv import RefineConvPipeline
+
 logger = build_logger("gradio_web_server", "gradio_web_server.log")
 
 headers = {"User-Agent": "FastChat Client"}
@@ -95,6 +97,7 @@ We thank [UC Berkeley SkyLab](https://sky.cs.berkeley.edu/), [Kaggle](https://ww
 #  - "anony_only" indicates whether to display this model in anonymous mode only.
 
 api_endpoint_info = {}
+refine_conv_processor = None
 
 
 class State:
@@ -161,6 +164,7 @@ def get_conv_log_filename(is_vision=False, has_csam_image=False):
 
 def get_model_list(controller_url, register_api_endpoint_file, vision_arena):
     global api_endpoint_info
+    global refine_conv_processor
 
     # Add models from the controller
     if controller_url:
@@ -196,7 +200,8 @@ def get_model_list(controller_url, register_api_endpoint_file, vision_arena):
         mdl_dict = api_endpoint_info[mdl]
         if mdl_dict["anony_only"]:
             visible_models.remove(mdl)
-
+    pipeline_config = "LawConv/config/pipeline.yaml"
+    refine_conv_processor = RefineConvPipeline(pipeline_config)
     # Sort models and add descriptions
     priority = {k: f"___{i:03d}" for i, k in enumerate(model_info)}
     models.sort(key=lambda x: priority.get(x, x))
@@ -525,7 +530,7 @@ def bot_response(
                 output = data["text"].strip()
                 # conv.update_last_message(output + "▌")
                 # conv.update_last_message(output + html_code)
-                #yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5
+                # yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5
             else:
                 output = data["text"] + f"\n\n(error_code: {data['error_code']})"
                 conv.update_last_message(output)
@@ -538,7 +543,15 @@ def bot_response(
                 )
                 return
         output = data["text"].strip()
-        conv.update_last_message(output)
+        # conv.update_last_message(output)
+        openai_api_messages = conv.to_openai_api_messages()
+        # 使用中间件优化对话
+        update_openai_api_messages, conv_trigger_info = refine_conv_processor.run(
+            openai_api_messages[1:]
+        )
+        print(update_openai_api_messages, conv_trigger_info)
+        conv.update_last_message(update_openai_api_messages[-1]["content"])
+
         yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
     except requests.exceptions.RequestException as e:
         conv.update_last_message(
@@ -578,7 +591,7 @@ def bot_response(
         is_vision=state.is_vision, has_csam_image=state.has_csam_image
     )
 
-    with open(filename, "a",encoding='utf-8') as fout:
+    with open(filename, "a", encoding="utf-8") as fout:
         data = {
             "tstamp": round(finish_tstamp, 4),
             "type": "chat",
@@ -593,7 +606,7 @@ def bot_response(
             "state": state.dict(),
             "ip": get_ip(request),
         }
-        fout.write(json.dumps(data,ensure_ascii=False) + "\n")
+        fout.write(json.dumps(data, ensure_ascii=False) + "\n")
     get_remote_logger().log(data)
 
 
