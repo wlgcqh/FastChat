@@ -546,11 +546,10 @@ def bot_response(
         # conv.update_last_message(output)
         openai_api_messages = conv.to_openai_api_messages()
         # 使用中间件优化对话
-        update_openai_api_messages, conv_trigger_info = refine_conv_processor.run(
-            openai_api_messages[1:]
-        )
-        print(update_openai_api_messages, conv_trigger_info)
-        conv.update_last_message(update_openai_api_messages[-1]["content"])
+        print(openai_api_messages[1:])
+        response = refine_conv_processor.simple_run(openai_api_messages[1:])
+        print(response)
+        conv.update_last_message(response)
 
         yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
     except requests.exceptions.RequestException as e:
