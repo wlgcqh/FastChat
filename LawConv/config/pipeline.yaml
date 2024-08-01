@@ -1,0 +1,34 @@
+pre_cfg:
+  limit_conv_turn: 
+    max_num: 5
+  extract_telephone: 
+    activated: true
+  sever_character:
+    prompt: "LawConv/config/intent_detect.md"
+    lawyer: "LawConv/config/lawyer.md"
+    psychologist: "LawConv/config/psychologist.md"
+    middle_role: "LawConv/config/middle_role.md"
+    clerk: "LawConv/config/clerk.md"
+
+post_cfg:
+  max_dedup:
+    max_dedup: 2
+  simplify_response: 
+    max_length_in_char: 50
+
+
+llm:
+  model: "deepseek-chat"
+  api_key: ""
+  api_base: "https://api.deepseek.com"
+  max_tokens: 4096
+  temperature: 1.0
+  top_p: 1.0
+  n: 1
+
+gpt:
+  model: "gpt-4o-mini"
+  api_key: ""
+  api_base: "https://api.openai.com/v1"
+  max_tokens: 4096
+  temperature: 1.0
