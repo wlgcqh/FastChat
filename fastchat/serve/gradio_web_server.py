@@ -549,9 +549,10 @@ def bot_response(
         print(openai_api_messages[1:])
         response = refine_conv_processor.simple_run(openai_api_messages[1:])
         print(response)
-        conv.update_last_message(response)
+        conv.update_last_message(str(response["result"]))
 
         yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
+        conv.update_last_message(response["data"][-1]["content"])
     except requests.exceptions.RequestException as e:
         conv.update_last_message(
             f"{SERVER_ERROR_MSG}\n\n"
