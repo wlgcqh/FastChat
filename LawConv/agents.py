@@ -13,7 +13,7 @@ from LawConv.post_agents import (
 
 
 from LawConv.pre_agents import (
-    LimitConvTurnPreAgent,
+    IsRecommendPreAgent,
     ExtractTelephonePreAgent,
     SeverCharacterPreAgent,
 )
@@ -25,7 +25,7 @@ POST_AGENTS = {
 }
 
 PRE_AGENTS = {
-    "limit_conv_turn": LimitConvTurnPreAgent,
+    "is_recommend": IsRecommendPreAgent,
     "extract_telephone": ExtractTelephonePreAgent,
     "sever_character": SeverCharacterPreAgent,
 }

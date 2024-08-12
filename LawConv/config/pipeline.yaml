@@ -1,13 +1,25 @@
 pre_cfg:
-  limit_conv_turn: 
-    max_num: 5
+  is_recommend: 
+    max_num: 4
+    isrec_prompt: "LawConv/config/is_recommend.md"
+    rec_prompt: "LawConv/config/recommend.md"
   extract_telephone: 
     activated: true
   sever_character:
     prompt: "LawConv/config/intent_detect.md"
-    lawyer: "LawConv/config/lawyer.md"
+    lawyer: 
+      work: "LawConv/config/lawyer/work.md"
+      marriage: "LawConv/config/lawyer/marriage.md"
+      injury: "LawConv/config/lawyer/injury.md"
+      borrow: "LawConv/config/lawyer/borrow.md"
+      others: "LawConv/config/lawyer/others.md"
     psychologist: "LawConv/config/psychologist.md"
-    middle_role: "LawConv/config/middle_role.md"
+    middle: 
+      work: "LawConv/config/middle/work.md"
+      marriage: "LawConv/config/middle/marriage.md"
+      injury: "LawConv/config/middle/injury.md"
+      borrow: "LawConv/config/middle/borrow.md"
+      others: "LawConv/config/middle/others.md"
     clerk: "LawConv/config/clerk.md"
 
 post_cfg:

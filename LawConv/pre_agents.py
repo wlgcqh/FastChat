@@ -9,7 +9,8 @@
 import json
 import re
 from typing import List
-from LawConv.utils import LLMClient
+from collections import defaultdict
+from LawConv.utils import LLMClient, convert_chat_format
 
 
 class PreAgent:
@@ -17,30 +18,51 @@ class PreAgent:
         ## pass
         pass
 
-    def run(self, conv: List[dict], llm_client: LLMClient):
+    def run(self, conv: List[dict], type: str, llm_client: LLMClient):
         return {"data": conv, "result": {}}
 
 
-class LimitConvTurnPreAgent(PreAgent):
-    def __init__(self, max_num: int) -> None:
+class IsRecommendPreAgent(PreAgent):
+    def __init__(self, max_num: int, **kwargs) -> None:
         self.max_num = max_num
+        with open(kwargs["isrec_prompt"], "r") as f:
+            self.isrec_prompt = f.read()
+        with open(kwargs["rec_prompt"], "r") as f:
+            self.rec_prompt = f.read()
 
-    def run(self, conv: List[dict], llm_client: LLMClient):
+    def run(self, conv: List[dict], type: type, llm_client: LLMClient):
         end_conv = False
+        intent_response = ""
+        rec_response = ""
         if len(conv) // 2 > self.max_num:
-            # 对话轮次大于5轮，就调用一个新的prompt, 让大模型去 流畅地转移到 结束话术。
-            system_prompt = """# 角色
-你是一名专业且耐心的客服。
-## 技能  
-当前与用户的对话轮次已经足够，需要流畅的结束对话让用户购买我们的法律咨询服务
-"""
-            msgs = [{"role": "system", "content": f"{system_prompt}"}]
-            msgs.extend(conv)
-            response = llm_client.response_from_list(msgs)
-            conv.append({"role": "assistant", "content": f"{response}"})
-            end_conv = True
+            print(self.isrec_prompt.format(conv=convert_chat_format(conv)))
+            intent_response = llm_client.response_from_question(
+                self.isrec_prompt.format(conv=convert_chat_format(conv))
+            )
+            print(intent_response)
+            try:
+                is_recommend = int(re.findall(r"\[return\] (.+?)", intent_response)[0])
+            except:
+                is_recommend = 0
+            if is_recommend:
 
-        return {"data": conv, "result": {"end_conv": end_conv}}
+                # 让大模型去 流畅地转移到 结束话术。
+                msgs = [
+                    {
+                        "role": "system",
+                        "content": f"{self.rec_prompt.format(type=type)}",
+                    }
+                ]
+                msgs.extend(conv)
+                rec_response = llm_client.response_from_list(msgs)
+                # conv.append({"role": "assistant", "content": f"{response}"})
+
+                end_conv = True
+
+        return {
+            "data": rec_response,
+            "result": {"end_conv": end_conv, "recommend_intent": intent_response},
+        }
 
 
 class ExtractTelephonePreAgent(PreAgent):
@@ -113,12 +135,21 @@ class SeverCharacterPreAgent(PreAgent):
     def __init__(self, *args, **kwargs):
         with open(kwargs["prompt"], "r") as f:
             self.role_prompt = f.read()
-        self.ai_characters = ["lawyer", "psychologist", "middle_role", "clerk"]
-        self.roles_prompt = {}
-        for ai_character in self.ai_characters:
-            self.roles_prompt[ai_character] = open(kwargs[ai_character], "r").read()
 
-    def run(self, conv: List[dict], llm_client: LLMClient):
+        self.ai_characters = ["lawyer", "psychologist", "middle", "clerk"]
+        self.roles_prompt = defaultdict(dict)
+        for ai_character in self.ai_characters:
+            if isinstance(kwargs[ai_character], str):
+                self.roles_prompt[ai_character] = open(kwargs[ai_character], "r").read()
+            else:
+                for law_type, file_path in kwargs[ai_character].items():
+                    self.roles_prompt[ai_character][law_type] = open(
+                        file_path, "r"
+                    ).read()
+            # else:
+            #     raise Exception(f"unknown obj: {kwargs[ai_character]}")
+
+    def run(self, conv: List[dict], type: str, llm_client: LLMClient):
         intent_response = llm_client.response_from_question(
             self.role_prompt.format(conv=conv[-1]["content"])
         )
@@ -127,8 +158,11 @@ class SeverCharacterPreAgent(PreAgent):
             ai_character = self.ai_characters[index - 1]
         except:
             ai_character = "lawyer"
+        if isinstance(self.roles_prompt[ai_character], str):
+            system_prompt = self.roles_prompt[ai_character]
+        else:
+            system_prompt = self.roles_prompt[ai_character][type]
 
-        system_prompt = self.roles_prompt[ai_character]
         msgs = [{"role": "system", "content": f"{system_prompt}"}]
         msgs.extend(conv)
         response = llm_client.response_from_list(msgs)
@@ -140,7 +174,7 @@ class SeverCharacterPreAgent(PreAgent):
             "result": {"ai_character": ai_character, "intent_detect": intent_response},
         }
 
-    def simple_run(self, conv: List[dict], llm_client: LLMClient):
+    def simple_run(self, conv: List[dict], type: str, llm_client: LLMClient):
         intent_response = llm_client.response_from_question(
             self.role_prompt.format(conv=conv[-1]["content"])
         )
@@ -151,20 +185,25 @@ class SeverCharacterPreAgent(PreAgent):
         except:
             ai_character = "lawyer"
 
-        llm_response = {}
-        for role in self.ai_characters:
-            system_prompt = self.roles_prompt[role]
-            msgs = [{"role": "system", "content": f"{system_prompt}"}]
-            msgs.extend(conv)
-            response = llm_client.response_from_list(msgs)
-            llm_response[role] = response
+        if isinstance(self.roles_prompt[ai_character], str):
+            system_prompt = self.roles_prompt[ai_character]
+        else:
+            system_prompt = self.roles_prompt[ai_character][type]
+        print(ai_character, type, system_prompt)
+        # llm_response = {}
+        # for role in self.ai_characters:
+        #     system_prompt = self.roles_prompt[role]
+        msgs = [{"role": "system", "content": f"{system_prompt}"}]
+        msgs.extend(conv)
+        response = llm_client.response_from_list(msgs)
+        # llm_response[role] = response
 
-        conv.append({"role": "assistant", "content": f"{llm_response[ai_character]}"})
+        conv.append({"role": "assistant", "content": f"{response}"})
         return {
             "data": conv,
             "result": {
                 "ai_character": ai_character,
                 "intent_detect": intent_response,
-                "llm_response": llm_response,
+                # "llm_response": llm_response,
             },
         }

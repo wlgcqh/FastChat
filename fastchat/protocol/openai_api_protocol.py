@@ -73,8 +73,10 @@ class ChatCompletionRequest(BaseModel):
     frequency_penalty: Optional[float] = 0.0
     user: Optional[str] = None
 
+
 class MyChatCompletionRequest(BaseModel):
     question: str
+    type: str
     history: Union[
         str,
         List[Dict[str, str]],
@@ -90,6 +92,7 @@ class MyChatCompletionRequest(BaseModel):
     presence_penalty: Optional[float] = 0.0
     frequency_penalty: Optional[float] = 0.0
     user: Optional[str] = None
+
 
 class ChatMessage(BaseModel):
     role: str

@@ -7,6 +7,7 @@
 Usage:
 python3 -m fastchat.serve.openai_api_server
 """
+
 import asyncio
 import argparse
 import json
@@ -65,13 +66,16 @@ from fastchat.protocol.api_protocol import (
     APITokenCheckResponseItem,
 )
 from fastchat.utils import build_logger
+from LawConv.refine_law_conv import RefineConvPipeline
 
-logger = build_logger("openai_api_server", "openai_api_server.log")
+pipeline_config = "LawConv/config/pipeline.yaml"
+refine_conv_processor = RefineConvPipeline(pipeline_config)
+logger = build_logger("chat_api_server", "chat_api_server.log")
 
 conv_template_map = {}
 
 fetch_timeout = aiohttp.ClientTimeout(total=3 * 3600)
-system_prompt = open('data/prompt.md', 'r').read()
+system_prompt = open("data/prompt.md", "r").read()
 t = datetime.datetime.now()
 conv_log_filename = f"{t.year}-{t.month:02d}-{t.day:02d}-conv.txt"
 log_name = os.path.join("logs/", conv_log_filename)
@@ -420,32 +424,22 @@ async def create_chat_completion(request: MyChatCompletionRequest):
     error_check_ret = check_requests(request)
     if error_check_ret is not None:
         return error_check_ret
-    worker_addr = "https://api.deepseek.com"
-    api_key="sk-3a03004f34d94de8b1679f36f8bf7dea"
-    client = OpenAI(api_key=api_key, base_url=worker_addr)
 
-    messages = [
-        {"role": "system", "content": f"{system_prompt}"},
-    ]
-    
+    messages = []
     messages.extend(request.history)
     messages.append({"role": "user", "content": f"{request.question}"})
-    response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=messages,
-        temperature=0.2,
-        stream=False)
-    res_content = {"content": response.choices[0].message.content}
-    ## 策略
-    # func(res_content)
 
-    #记录日志
-    
+    res_conv, conv_trigger_info = refine_conv_processor.simple_run(
+        messages, request.type
+    )
+    res_content = res_conv[-1]["content"]
+
+    # 记录日志
+
     with open(log_name, "a") as fout:
-        row = f'history:{messages},response:{res_content}\n'
+        row = f"history:{messages},response:{res_content}\n"
         fout.write(row)
     return res_content
-
 
 
 async def chat_completion_stream_generator(
@@ -502,8 +496,6 @@ async def chat_completion_stream_generator(
     for finish_chunk in finish_stream_events:
         yield f"data: {finish_chunk.model_dump_json(exclude_none=True)}\n\n"
     yield "data: [DONE]\n\n"
-
-
 
 
 async def generate_completion_stream_generator(
@@ -591,8 +583,6 @@ async def generate_completion(payload: Dict[str, Any], worker_addr: str):
     return await fetch_remote(worker_addr + "/worker_generate", payload, "")
 
 
-
-
 @app.post("/api/v1/token_check")
 async def count_tokens(request: APITokenCheckRequest):
     """
@@ -626,9 +616,6 @@ async def count_tokens(request: APITokenCheckRequest):
         )
 
     return APITokenCheckResponse(prompts=checkedList)
-
-
-
 
 
 def create_openai_api_server():

@@ -73,3 +73,14 @@ def ngram_similarity(doc1, doc2, n=2):
     ngrams_doc1 = generate_ngrams(doc1, n)
     ngrams_doc2 = generate_ngrams(doc2, n)
     return jaccard_similarity(ngrams_doc1, ngrams_doc2)
+
+
+def convert_chat_format(conv: List):
+    lines = ""
+    for i, msg in enumerate(conv):
+        if i % 2 == 0:
+            line = f'用户: {msg["content"]}\n'
+        else:
+            line = f'客服: {msg["content"]}\n'
+        lines += line
+    return lines

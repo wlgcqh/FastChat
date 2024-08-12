@@ -28,7 +28,7 @@ class RefineConvPipeline(Pipeline):
         self.llm_client = LLMClient(**self.llm_cfg)
         # self.gpt_client = LLMClient(**self.gpt_cfg)
 
-    def run(self, conv: List[dict]):
+    def run(self, conv: List[dict], type: str):
         ## limit_conv_turn
         limit_conv_turn_output = self.pre_agents["limit_conv_turn"].run(
             conv, self.llm_client
@@ -77,19 +77,41 @@ class RefineConvPipeline(Pipeline):
 
         return conv, conv_trigger_info
 
-    def simple_run(self, conv: List[dict]):
+    def simple_run(self, conv: List[dict], type: str):
 
-        output = self.pre_agents["sever_character"].simple_run(conv, self.llm_client)
-        # gpt_response = self.pre_agents["sever_character"].simple_run(
-        #     conv, self.gpt_client
-        # )
-        return output
-        # return str({"意图": intent_response, "角色回答": llm_response})
+        ## limit_conv_turn
+        is_recommend_output = self.pre_agents["is_recommend"].run(
+            conv, type, self.llm_client
+        )
+        end_conv = is_recommend_output["result"]["end_conv"]
+        rec_response = is_recommend_output["data"]
+
+        server_character_output = self.pre_agents["sever_character"].simple_run(
+            conv, type, self.llm_client
+        )
+        ai_character = server_character_output["result"]["ai_character"]
+        conv = server_character_output["data"]
+
+        max_dedup_output = self.post_agents["max_dedup"].run(
+            conv, type, self.llm_client
+        )
+        turn_dedup = max_dedup_output["result"]["turn_dedup"]
+        conv = max_dedup_output["data"]
+
+        conv_trigger_info = {
+            "turn_dedup": turn_dedup,
+            "intent_detect": server_character_output["result"],
+            "recommend_detect": is_recommend_output["result"],
+        }
+        if end_conv:
+            conv[-1]["content"] += f"@@{rec_response}"
+
+        return conv, conv_trigger_info
 
 
 if __name__ == "__main__":
     demo_convs = json.load(open("LawConv/test/law_conv_with_error.json", "r"))
     pipeline_config = "LawConv/config/pipeline.yaml"
     refine_conv_processor = RefineConvPipeline(pipeline_config)
-    conv = refine_conv_processor.simple_run(demo_convs)
-    # print(conv)
+    conv, conv_trigger_info = refine_conv_processor.simple_run(demo_convs, "work")
+    print(conv, conv_trigger_info)
