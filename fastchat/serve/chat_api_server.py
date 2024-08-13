@@ -432,7 +432,7 @@ async def create_chat_completion(request: MyChatCompletionRequest):
     res_conv, conv_trigger_info = refine_conv_processor.simple_run(
         messages, request.type
     )
-    res_content = res_conv[-1]["content"]
+    res_content = {"content": res_conv[-1]["content"]}
 
     # 记录日志
 
