@@ -35,11 +35,9 @@ class IsRecommendPreAgent(PreAgent):
         intent_response = ""
         rec_response = ""
         if len(conv) // 2 > self.max_num:
-            print(self.isrec_prompt.format(conv=convert_chat_format(conv)))
             intent_response = llm_client.response_from_question(
                 self.isrec_prompt.format(conv=convert_chat_format(conv))
             )
-            print(intent_response)
             try:
                 is_recommend = int(re.findall(r"\[return\] (.+?)", intent_response)[0])
             except:
@@ -180,7 +178,6 @@ class SeverCharacterPreAgent(PreAgent):
         )
         try:
             index = int(re.findall(r"\[return\] (.+?)", intent_response)[0])
-            print(index, self.ai_characters)
             ai_character = self.ai_characters[index - 1]
         except:
             ai_character = "lawyer"
@@ -189,7 +186,6 @@ class SeverCharacterPreAgent(PreAgent):
             system_prompt = self.roles_prompt[ai_character]
         else:
             system_prompt = self.roles_prompt[ai_character][type]
-        print(ai_character, type, system_prompt)
         # llm_response = {}
         # for role in self.ai_characters:
         #     system_prompt = self.roles_prompt[role]
@@ -205,5 +201,23 @@ class SeverCharacterPreAgent(PreAgent):
                 "ai_character": ai_character,
                 "intent_detect": intent_response,
                 # "llm_response": llm_response,
+            },
+        }
+
+    def fast_run(self, conv: List[dict], type: str, llm_client: LLMClient):
+
+        ai_character = "lawyer"
+
+        system_prompt = self.roles_prompt[ai_character][type]
+
+        msgs = [{"role": "system", "content": f"{system_prompt}"}]
+        msgs.extend(conv)
+        response = llm_client.response_from_list(msgs)
+
+        conv.append({"role": "assistant", "content": f"{response}"})
+        return {
+            "data": conv,
+            "result": {
+                "llm_response": response,
             },
         }

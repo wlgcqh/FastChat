@@ -13,7 +13,6 @@ class RefineConvPipeline(Pipeline):
         self.post_cfg = self.cfg.post_cfg
         self.llm_cfg = self.cfg.llm
         self.gpt_cfg = self.cfg.gpt
-        print(self.cfg)
 
         self.pre_agents = {}
         for key in self.pre_cfg:
@@ -108,10 +107,21 @@ class RefineConvPipeline(Pipeline):
 
         return conv, conv_trigger_info
 
+    def fast_run(self, conv: List[dict], type: str):
+
+        server_character_output = self.pre_agents["sever_character"].fast_run(
+            conv, type, self.llm_client
+        )
+
+        conv = server_character_output["data"]
+        conv_trigger_info = {}
+
+        return conv, conv_trigger_info
+
 
 if __name__ == "__main__":
     demo_convs = json.load(open("LawConv/test/law_conv_with_error.json", "r"))
     pipeline_config = "LawConv/config/pipeline.yaml"
     refine_conv_processor = RefineConvPipeline(pipeline_config)
-    conv, conv_trigger_info = refine_conv_processor.simple_run(demo_convs, "work")
+    conv, conv_trigger_info = refine_conv_processor.fast_run(demo_convs, "work")
     print(conv, conv_trigger_info)

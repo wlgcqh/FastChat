@@ -52,16 +52,9 @@ class MaxDedupPostAgent(PostAgent):
         self.max_dedup = max_dedup
 
     def run(self, conv: List[dict], type: str, llm_client: LLMClient):
-        print("*" * 30)
-        print(conv)
         last_turn = conv[-1]
         dedup_count = 0
         for turn in conv[1:-1:2]:
-            print(
-                last_turn["content"],
-                turn["content"],
-                ngram_similarity(last_turn["content"], turn["content"]),
-            )
             if ngram_similarity(last_turn["content"], turn["content"]) > 0.85:
                 dedup_count += 1
 

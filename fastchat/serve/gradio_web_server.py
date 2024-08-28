@@ -507,15 +507,15 @@ def bot_response(
                     "max_new_tokens", max_new_tokens
                 )
 
-        stream_iter = get_api_provider_stream_iter(
-            conv,
-            model_name,
-            model_api_dict,
-            temperature,
-            top_p,
-            max_new_tokens,
-            state,
-        )
+        # stream_iter = get_api_provider_stream_iter(
+        #     conv,
+        #     model_name,
+        #     model_api_dict,
+        #     temperature,
+        #     top_p,
+        #     max_new_tokens,
+        #     state,
+        # )
 
     html_code = ' <span class="cursor"></span> '
 
@@ -525,36 +525,36 @@ def bot_response(
 
     try:
         data = {"text": ""}
-        for i, data in enumerate(stream_iter):
-            if data["error_code"] == 0:
-                output = data["text"].strip()
-                # conv.update_last_message(output + "▌")
-                # conv.update_last_message(output + html_code)
-                # yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5
-            else:
-                output = data["text"] + f"\n\n(error_code: {data['error_code']})"
-                conv.update_last_message(output)
-                yield (state, state.to_gradio_chatbot()) + (
-                    disable_btn,
-                    disable_btn,
-                    disable_btn,
-                    enable_btn,
-                    enable_btn,
-                )
-                return
+        # for i, data in enumerate(stream_iter):
+        #     if data["error_code"] == 0:
+        #         output = data["text"].strip()
+        #         # conv.update_last_message(output + "▌")
+        #         # conv.update_last_message(output + html_code)
+        #         # yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5
+        #     else:
+        #         output = data["text"] + f"\n\n(error_code: {data['error_code']})"
+        #         conv.update_last_message(output)
+        #         yield (state, state.to_gradio_chatbot()) + (
+        #             disable_btn,
+        #             disable_btn,
+        #             disable_btn,
+        #             enable_btn,
+        #             enable_btn,
+        #         )
+        #         return
         output = data["text"].strip()
         # conv.update_last_message(output)
         openai_api_messages = conv.to_openai_api_messages()
         # 使用中间件优化对话
 
-        res_conv, conv_trigger_info = refine_conv_processor.simple_run(
+        res_conv, conv_trigger_info = refine_conv_processor.fast_run(
             openai_api_messages[1:], "work"
         )
         # print(response)
-        conv.update_last_message(str(res_conv[-1]["content"]) + str(conv_trigger_info))
+        conv.update_last_message(res_conv[-1]["content"])
 
         yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
-        conv.update_last_message(res_conv[-1]["content"])
+        # conv.update_last_message(res_conv[-1]["content"])
     except requests.exceptions.RequestException as e:
         conv.update_last_message(
             f"{SERVER_ERROR_MSG}\n\n"

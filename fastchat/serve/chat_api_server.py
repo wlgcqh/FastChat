@@ -429,15 +429,13 @@ async def create_chat_completion(request: MyChatCompletionRequest):
     messages.extend(request.history)
     messages.append({"role": "user", "content": f"{request.question}"})
 
-    res_conv, conv_trigger_info = refine_conv_processor.simple_run(
-        messages, request.type
-    )
+    res_conv, conv_trigger_info = refine_conv_processor.fast_run(messages, request.type)
     res_content = {"content": res_conv[-1]["content"]}
 
     # 记录日志
 
     with open(log_name, "a") as fout:
-        row = f"history:{messages},response:{res_content}\n"
+        row = f"conv:{res_conv},conv_trigger_info:{conv_trigger_info}\n"
         fout.write(row)
     return res_content
 
