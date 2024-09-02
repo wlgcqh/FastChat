@@ -209,11 +209,11 @@ class SeverCharacterPreAgent(PreAgent):
         ai_character = "lawyer"
 
         system_prompt = self.roles_prompt[ai_character][type]
-
+        # print(system_prompt)
         msgs = [{"role": "system", "content": f"{system_prompt}"}]
         msgs.extend(conv)
         response = llm_client.response_from_list(msgs)
-
+        print(response)
         conv.append({"role": "assistant", "content": f"{response}"})
         return {
             "data": conv,
