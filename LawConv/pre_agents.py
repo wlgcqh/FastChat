@@ -213,7 +213,7 @@ class SeverCharacterPreAgent(PreAgent):
         msgs = [{"role": "system", "content": f"{system_prompt}"}]
         msgs.extend(conv)
         response = llm_client.response_from_list(msgs)
-        print(response)
+        # print(response)
         conv.append({"role": "assistant", "content": f"{response}"})
         return {
             "data": conv,

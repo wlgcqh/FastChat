@@ -431,7 +431,7 @@ async def create_chat_completion(request: MyChatCompletionRequest):
 
     res_conv, conv_trigger_info = refine_conv_processor.fast_run(messages, request.type)
     res_content = {"content": res_conv[-1]["content"]}
-
+    logger.info(f"question: {request.question},answer:{res_conv[-1]["content"]}")
     # 记录日志
 
     with open(log_name, "a") as fout:
