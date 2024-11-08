@@ -2,8 +2,8 @@ import openai
 from typing import List
 import os
 
-# os.environ["http_proxy"] = "http://127.0.0.1:7890"
-# os.environ["https_proxy"] = "http://127.0.0.1:7890"
+os.environ["http_proxy"] = "http://127.0.0.1:7890"
+os.environ["https_proxy"] = "http://127.0.0.1:7890"
 
 
 class LLMClient:
@@ -37,6 +37,18 @@ class LLMClient:
             # n=self.n,
         )
 
+        return response.choices[0].message.content
+
+    def response_json_output(self, msgs: List[dict]):
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=msgs,
+            max_tokens=self.max_tokens,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            response_format={"type": "json_object"},
+        )
+        print(response.choices[0])
         return response.choices[0].message.content
 
     def response_from_question(self, question: str):

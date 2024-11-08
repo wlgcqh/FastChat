@@ -1,46 +1,50 @@
 pre_cfg:
-  is_recommend: 
-    max_num: 4
-    isrec_prompt: "LawConv/config/is_recommend.md"
-    rec_prompt: "LawConv/config/recommend.md"
-  extract_telephone: 
-    activated: true
+  mode_switch:
+    key_word: "律师VIP"
+  lawyer:
+    prompt: "LawConv/config/lawyer.md"
+    
   sever_character:
-    prompt: "LawConv/config/intent_detect.md"
-    lawyer: 
-      work: "LawConv/config/lawyer/work.md"
-      marriage: "LawConv/config/lawyer/marriage.md"
-      injury: "LawConv/config/lawyer/injury.md"
-      borrow: "LawConv/config/lawyer/borrow.md"
-      others: "LawConv/config/lawyer/others.md"
-    psychologist: "LawConv/config/psychologist.md"
-    middle: 
-      work: "LawConv/config/middle/work.md"
-      marriage: "LawConv/config/middle/marriage.md"
-      injury: "LawConv/config/middle/injury.md"
-      borrow: "LawConv/config/middle/borrow.md"
-      others: "LawConv/config/middle/others.md"
-    clerk: "LawConv/config/clerk.md"
-
+    ask: "LawConv/config/lawyer/work/ask.md"
+    recommend: "LawConv/config/lawyer/work/recommend.md"
+    work: 
+      intent_detect: "LawConv/config/lawyer/work/intent_detect.md"
+      0: "LawConv/config/lawyer/work/others.md"
+      1: "LawConv/config/lawyer/work/complete.md"
+      2: "LawConv/config/lawyer/work/transfer_salary.md"
+      3: "LawConv/config/lawyer/work/unpaid_wages.md"
+      4: "LawConv/config/lawyer/work/social_insurance.md"
+      5: "LawConv/config/lawyer/work/work_injury.md"
+  ask_question:
+    max_turns: 4
+    prompt: "LawConv/config/lawyer/ask_question.md"
+  is_recommend:
+    min_turns: 4
+    prompt: "LawConv/config/lawyer/end_conv.md"
+  emotion:
+    max_turns: 2
+    prompt: "LawConv/config/lawyer/emotion.md"
+      
 post_cfg:
   max_dedup:
     max_dedup: 2
   simplify_response: 
     max_length_in_char: 50
 
-
 llm:
   model: "deepseek-chat"
   api_key: ""
   api_base: "https://api.deepseek.com"
   max_tokens: 4096
-  temperature: 1.0
-  top_p: 1.0
+  temperature: 0.2
+  top_p: 0.7
   n: 1
 
 gpt:
-  model: "gpt-4o-mini"
+  model: "gpt-4o"
   api_key: ""
   api_base: "https://api.openai.com/v1"
   max_tokens: 4096
-  temperature: 1.0
+  temperature: 0.2
+  top_p: 0.7
+  

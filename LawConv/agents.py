@@ -16,6 +16,10 @@ from LawConv.pre_agents import (
     IsRecommendPreAgent,
     ExtractTelephonePreAgent,
     SeverCharacterPreAgent,
+    EmotionPreAgent,
+    AskQuestionPreAgent,
+    ModeSwitchPreAgent,
+    LawyerPreAgent,
 )
 
 #################################################################################################
@@ -26,6 +30,10 @@ POST_AGENTS = {
 
 PRE_AGENTS = {
     "is_recommend": IsRecommendPreAgent,
+    "emotion": EmotionPreAgent,
+    "ask_question": AskQuestionPreAgent,
     "extract_telephone": ExtractTelephonePreAgent,
     "sever_character": SeverCharacterPreAgent,
+    "mode_switch": ModeSwitchPreAgent,
+    "lawyer": LawyerPreAgent,
 }

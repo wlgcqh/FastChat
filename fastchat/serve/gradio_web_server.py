@@ -359,7 +359,7 @@ def add_text(state, model_selector, text, image, request: gr.Request):
     text = _prepare_text_with_image(state, text, image, csam_flag=False)
     state.conv.append_message(state.conv.roles[0], text)
     state.conv.append_message(state.conv.roles[1], None)
-    return (state, state.to_gradio_chatbot(), "", None) + (disable_btn,) * 5
+    return (state, state.to_gradio_chatbot(), "", None) + (disable_btn,) * 2
 
 
 def model_worker_stream_iter(
@@ -521,7 +521,7 @@ def bot_response(
 
     # conv.update_last_message("▌")
     # conv.update_last_message(html_code)
-    yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5
+    yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 2
 
     try:
         data = {"text": ""}
@@ -547,13 +547,13 @@ def bot_response(
         openai_api_messages = conv.to_openai_api_messages()
         # 使用中间件优化对话
 
-        res_conv, conv_trigger_info = refine_conv_processor.fast_run(
+        res_conv, conv_trigger_info = refine_conv_processor.run(
             openai_api_messages[1:], "work"
         )
         # print(response)
         conv.update_last_message(res_conv[-1]["content"])
 
-        yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
+        yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 2
         # conv.update_last_message(res_conv[-1]["content"])
     except requests.exceptions.RequestException as e:
         conv.update_last_message(
@@ -569,6 +569,7 @@ def bot_response(
         )
         return
     except Exception as e:
+        raise (e)
         conv.update_last_message(
             f"{SERVER_ERROR_MSG}\n\n"
             f"(error_code: {ErrorCode.GRADIO_STREAM_UNKNOWN_ERROR}, {e})"
